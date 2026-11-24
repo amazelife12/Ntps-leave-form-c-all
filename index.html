@@ -66,6 +66,8 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; display: flex; flex-d
 legend { padding: 0; font-size: 14px; color: var(--muted); font-weight: 500; margin-bottom: 8px; }
 .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .seg3 { grid-template-columns: repeat(3, 1fr); }
+.seg4 { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.seg4 span { padding: 8px 2px; }
 .seg3 span { flex-direction: column; gap: 2px; }
 .seg3 .ico { margin: 0; }
 .miss { outline: 2px solid var(--stamp); outline-offset: 3px; border-radius: 10px; }
@@ -138,6 +140,7 @@ legend { padding: 0; font-size: 14px; color: var(--muted); font-weight: 500; mar
 .care[hidden] { display:none; }
 .care .care-t { font-weight:700; font-size:15px; color:var(--ink); margin:0; }
 .care .care-s { font-size:13px; color:var(--muted); margin:0; }
+.field .care-s { font-size:13px; color:var(--muted); margin:0; }
 .care button.card { padding:0; border:1px solid var(--rule); border-radius:12px; overflow:hidden; background:var(--card); cursor:zoom-in; display:block; width:100%; }
 .care button.card img { display:block; width:100%; height:auto; }
 .zoom { position:fixed; inset:0; z-index:50; background:rgba(0,0,0,.82); overflow:auto; padding:12px; padding-top:calc(12px + env(safe-area-inset-top,0px)); cursor:zoom-out; }
@@ -167,8 +170,9 @@ legend { padding: 0; font-size: 14px; color: var(--muted); font-weight: 500; mar
       </div>
       <fieldset class="field">
         <legend style="color:var(--ink);font-weight:700;font-size:15px">假別</legend>
-        <div class="seg seg3">
-          <label><input type="radio" name="type" value="事假/喪假" checked><span><b class="ico" aria-hidden="true">🌱</b>事假/喪假</span></label>
+        <div class="seg seg3 seg4">
+          <label><input type="radio" name="type" value="事假" checked><span><b class="ico" aria-hidden="true">🌱</b>事假</span></label>
+          <label><input type="radio" name="type" value="喪假"><span><b class="ico" aria-hidden="true">🕊️</b>喪假</span></label>
           <label><input type="radio" name="type" value="病假"><span><b class="ico" aria-hidden="true">🌺</b>病假</span></label>
           <label><input type="radio" name="type" value="公假"><span><b class="ico" aria-hidden="true">🌻</b>公假</span></label>
         </div>
@@ -237,6 +241,14 @@ legend { padding: 0; font-size: 14px; color: var(--muted); font-weight: 500; mar
           <label><input type="radio" name="hw" value="不需要"><span>不需要</span></label>
         </div>
       </fieldset>
+      <fieldset class="field" id="mealWrap" hidden>
+        <legend style="color:var(--ink);font-weight:700;font-size:15px">午餐停餐調查：葷食或素食</legend>
+        <p class="care-s">請假 3 個上課日以上需要停餐，請告訴導師孩子平常吃葷食或素食。</p>
+        <div class="seg" id="mealSeg">
+          <label><input type="radio" name="meal" value="葷食"><span>葷食</span></label>
+          <label><input type="radio" name="meal" value="素食"><span>素食</span></label>
+        </div>
+      </fieldset>
     </div>
   </section>
 
@@ -261,10 +273,10 @@ legend { padding: 0; font-size: 14px; color: var(--muted); font-weight: 500; mar
   var REPORT_URL = "https://cpmimicker07-cloud.github.io/ntpshealth/";
   var KEY = "class-leave-c-v1";
   var TTL = 24 * 60 * 60 * 1000;
-  var T1 = "事假/喪假";
-  var state = { type: T1, days: "full" };
+  var state = { type: "事假", days: "full" };
   var OPTIONS = {
-    "事假/喪假": ["家庭旅遊", "家中事務", "參加比賽或活動", "喪假（家人過世）", "其他"],
+    "事假": ["家庭旅遊", "家中事務", "參加比賽或活動", "其他"],
+    "喪假": ["家人過世", "其他"],
     "病假": ["身體不適", "受傷", "回診或看醫生", "感冒", "發燒", "嘔吐", "腹瀉", "腸病毒", "A型流感", "B型流感", "新冠", "腸胃炎/腸胃型感冒", "登革熱", "水痘", "其他"],
     "公假": ["參加比賽或活動", "其他"]
   };
@@ -333,7 +345,7 @@ legend { padding: 0; font-size: 14px; color: var(--muted); font-weight: 500; mar
     var span = spanDays();
     var full = state.days !== "part";
     return {
-      paper: state.type === T1 && full && span >= 5,
+      paper: (state.type === "事假" || state.type === "喪假") && full && span >= 5,
       lunch: full && span >= 3,
       report: state.type === "病假" && picked.some(function (x) { return INFECT.indexOf(x) >= 0; })
     };
@@ -379,7 +391,7 @@ legend { padding: 0; font-size: 14px; color: var(--muted); font-weight: 500; mar
       localStorage.setItem(KEY, JSON.stringify({
         ts: Date.now(),
         type: radio("type"), days: radio("days"), hw: radio("hw"),
-        onset: $("#onset").value, diag: $("#diag").value, clinic: $("#clinic").value, cram: $("#cram").value, disp: radio("disp"), admit: $("#admit").value, sib: $("#sib").value,
+        onset: $("#onset").value, diag: $("#diag").value, clinic: $("#clinic").value, cram: $("#cram").value, disp: radio("disp"), meal: radio("meal"), admit: $("#admit").value, sib: $("#sib").value,
         who: $("#who").value, d1: $("#d1").value, d2: $("#d2").value, t1: $("#t1").value, t2: $("#t2").value, why: $("#why").value, picked: picked, diseases: diseases, dOther: $("#dOther").value
       }));
     } catch (e) {}
@@ -401,7 +413,7 @@ legend { padding: 0; font-size: 14px; color: var(--muted); font-weight: 500; mar
       diseases = Array.isArray(s.diseases) ? s.diseases.filter(function (x) { return DISEASES.indexOf(x) >= 0; }) : [];
       $("#dOther").value = s.dOther || "";
       ["onset", "diag", "clinic", "cram", "admit", "sib"].forEach(function (k) { $("#" + k).value = s[k] || ""; });
-      setRadio("disp", s.disp);
+      setRadio("disp", s.disp); setRadio("meal", s.meal);
     } catch (e) {}
   }
   function reset() {
@@ -445,6 +457,7 @@ legend { padding: 0; font-size: 14px; color: var(--muted); font-weight: 500; mar
       if (!$("#sib").value.trim()) m.push({ label: "兄弟姊妹就讀班級姓名（沒有請填「無」）", el: "#sib" });
     }
     if (!radio("hw")) m.push({ label: "作業是否放警衛室", el: "#hwSeg" });
+    if (needs().lunch && !radio("meal")) m.push({ label: "午餐葷食或素食", el: "#mealSeg" });
     return m;
   }
   var showMiss = false;
@@ -467,6 +480,7 @@ legend { padding: 0; font-size: 14px; color: var(--muted); font-weight: 500; mar
       "3.請假原因：" + reasonText(),
       "4.作業是否需要放警衛室：" + radio("hw")
     ];
+    if (n.lunch) lines.push("5.午餐葷素：" + radio("meal"));
     var std = picked.filter(function (x) { return STD[x]; }).map(function (x) { return "・" + x + "：" + STD[x]; });
     var blocks = [lines.join("\n")];
     if (n.report) {
@@ -484,11 +498,7 @@ legend { padding: 0; font-size: 14px; color: var(--muted); font-weight: 500; mar
     }
     if (state.type === "病假" && std.length) blocks.push("📌返校標準\n" + std.join("\n"));
     blocks.push("✅家長請假手續已完成。");
-    var forms = [];
-    if (n.report) forms.push("🍃「傳染病通報系統」 " + REPORT_URL);
-    if (n.lunch) forms.push("🌸「午餐停餐申請」 " + LUNCH_URL);
-    if (n.paper) forms.push("📄紙本假單：" + T1 + "5個上課日以上（共" + spanDays() + "天），需另填紙本假單，請導師提供。");
-    if (forms.length) blocks.push("📝下列表單由導師填寫：\n" + forms.join("\n"));
+    if (n.paper) blocks.push("📄紙本假單：" + state.type + "5個上課日以上（共" + spanDays() + "天），需另填紙本假單，請導師提供。");
     $("#msg").value = blocks.join("\n\n");
     markMiss();
     save();
@@ -526,6 +536,7 @@ legend { padding: 0; font-size: 14px; color: var(--muted); font-weight: 500; mar
     renderCare();
     var rep0 = needs().report;
     $("#epi").hidden = !rep0;
+    $("#mealWrap").hidden = !needs().lunch;
     $("#admitWrap").hidden = !(rep0 && radio("disp") === "住院");
     var needDis = state.type === "病假" && picked.indexOf("校園傳染病") >= 0;
     if (!needDis && (diseases.length || $("#dOther").value)) {
@@ -576,7 +587,7 @@ legend { padding: 0; font-size: 14px; color: var(--muted); font-weight: 500; mar
     if (t.matches('input[name="type"], input[name="days"]')) { refresh(); return; }
     if (t.matches("#d1, #d2")) { refresh(); return; }
     if (t.matches('input[name="disp"]')) { refresh(); return; }
-    if (t.matches('input[name="hw"], #t1, #t2, #onset, #diag, #admit')) buildMsg();
+    if (t.matches('input[name="hw"], input[name="meal"], #t1, #t2, #onset, #diag, #admit')) buildMsg();
   });
   document.addEventListener("input", function (e) {
     if (e.target.matches("#who, #why, #dOther, #clinic, #cram, #sib")) buildMsg();
